@@ -11,7 +11,7 @@ import {
   TransactionStatus,
   AuditLogItem
 } from '../types';
-import { formatCurrency, formatDate, calculateInterest, formatNumberWithComma, parseNumberFromComma, roundTo2 } from '../utils/helpers';
+import { formatCurrency, formatDate, calculateInterest, calculateInterestWithRateChange, formatNumberWithComma, parseNumberFromComma, roundTo2 } from '../utils/helpers';
 import {
   Wallet, Plus, History, AlertCircle, PiggyBank, X
 } from 'lucide-react';
@@ -22,6 +22,9 @@ interface BankBalanceProps {
   bankAccount: BankAccount;
   bankTransactions: BankTransaction[];
   interestRate: number;
+  interestRateChangeDate?: string | null;
+  interestRateBefore?: number | null;
+  interestRateAfter?: number | null;
   currentUser: User;
   onAddBankTransaction: (type: BankTransactionType, amount: number, note: string, date: string) => void;
   onAdjustOpeningBalance: (amount: number) => void;
@@ -34,6 +37,9 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
   bankAccount,
   bankTransactions,
   interestRate,
+  interestRateChangeDate,
+  interestRateBefore,
+  interestRateAfter,
   onAddBankTransaction,
   currentUser,
   setAuditLogs,
@@ -56,6 +62,9 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
     let lockedInterest = 0; // Lãi đã chốt (đã giải ngân) - giữ 2 chữ số thập phân
     let supplementaryAmount = 0; // Tổng tiền bổ sung từ các giao dịch chưa giải ngân
 
+    // Check if rate change is configured
+    const hasRateChange = interestRateChangeDate && interestRateBefore !== null && interestRateAfter !== null;
+
     transactions.forEach(t => {
       const project = projects.find(p => p.id === t.projectId);
       const baseDate = t.effectiveInterestDate || project?.interestStartDate;
@@ -68,14 +77,43 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
           const extractedInterest = (t as any).disbursedTotal - t.compensation.totalApproved - supplementary;
           lockedInterest += extractedInterest;
         } else {
-          const calculatedInterest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date(t.disbursementDate));
+          // Calculate interest with rate change support
+          let calculatedInterest = 0;
+          if (hasRateChange) {
+            const interestResult = calculateInterestWithRateChange(
+              t.compensation.totalApproved,
+              baseDate,
+              new Date(t.disbursementDate),
+              interestRateChangeDate,
+              interestRateBefore,
+              interestRateAfter
+            );
+            calculatedInterest = interestResult.totalInterest;
+          } else {
+            calculatedInterest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date(t.disbursementDate));
+          }
           lockedInterest += calculatedInterest;
         }
       } else if (t.status !== TransactionStatus.DISBURSED) {
         // Tổng gốc của các giao dịch chưa giải ngân
         principal += t.compensation.totalApproved;
         // Lãi tạm tính (chỉ từ các giao dịch chưa giải ngân) - giữ 2 chữ số thập phân, chỉ làm tròn ở kết quả tổng
-        tempInterest += calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date());
+        // Calculate interest with rate change support
+        let tInterest = 0;
+        if (hasRateChange) {
+          const interestResult = calculateInterestWithRateChange(
+            t.compensation.totalApproved,
+            baseDate,
+            new Date(),
+            interestRateChangeDate,
+            interestRateBefore,
+            interestRateAfter
+          );
+          tInterest = interestResult.totalInterest;
+        } else {
+          tInterest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date());
+        }
+        tempInterest += tInterest;
         // Tiền bổ sung từ các giao dịch chưa giải ngân
         supplementaryAmount += t.supplementaryAmount || 0;
       }
@@ -87,7 +125,7 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
       locked: lockedInterest, // Lãi đã chốt (giữ 2 chữ số thập phân, sẽ làm tròn khi hiển thị)
       supplementary: supplementaryAmount // Tổng tiền bổ sung chưa giải ngân
     };
-  }, [transactions, projects, interestRate, bankAccount.currentBalance]);
+  }, [transactions, projects, interestRate, interestRateChangeDate, interestRateBefore, interestRateAfter, bankAccount.currentBalance]);
 
   const handleTxSubmit = () => {
     const amountNum = parseNumberFromComma(txAmount);

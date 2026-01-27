@@ -458,6 +458,9 @@ const App: React.FC = () => {
           bankAccount={bankAccount}
           bankTransactions={bankTransactions}
           interestRate={interestRate}
+          interestRateChangeDate={interestRateChangeDate}
+          interestRateBefore={interestRateBefore}
+          interestRateAfter={interestRateAfter}
           currentUser={currentUser!}
           onAddBankTransaction={handleAddBankTransaction}
           onAdjustOpeningBalance={async (b) => {
