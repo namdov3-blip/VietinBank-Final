@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import api from '../services/api';
 import { GlassCard } from '../components/GlassCard';
-import { formatDate, formatCurrency, calculateInterest } from '../utils/helpers';
+import { formatDate, formatCurrency, calculateInterest, calculateInterestWithRateChange } from '../utils/helpers';
 import { Plus, FolderKanban, Coins, Loader2, X, Check, FileSpreadsheet, Edit2, Eye, Calendar, Save, Tag, Type, Trash2 } from 'lucide-react';
 import { Project, Transaction, TransactionStatus } from '../types';
 
@@ -9,6 +9,9 @@ interface ProjectsProps {
   projects: Project[];
   transactions: Transaction[];
   interestRate?: number;
+  interestRateChangeDate?: string | null;
+  interestRateBefore?: number | null;
+  interestRateAfter?: number | null;
   onImport: (project: Project, transactions: Transaction[]) => void;
   onUpdateProject: (updatedProject: Project) => void;
   onViewDetails: (projectCode: string) => void;
@@ -30,7 +33,18 @@ const toInputDateLocal = (d?: string | Date) => {
   return new Date(date.getTime() - tzOffset).toISOString().slice(0, 10);
 };
 
-export const Projects: React.FC<ProjectsProps> = ({ projects, transactions, interestRate = 0, onImport, onUpdateProject, onViewDetails, onDeleteProject }) => {
+export const Projects: React.FC<ProjectsProps> = ({
+  projects,
+  transactions,
+  interestRate = 0,
+  interestRateChangeDate,
+  interestRateBefore,
+  interestRateAfter,
+  onImport,
+  onUpdateProject,
+  onViewDetails,
+  onDeleteProject
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -39,6 +53,27 @@ export const Projects: React.FC<ProjectsProps> = ({ projects, transactions, inte
 
   // State for Editing
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  // Helper function to calculate interest with rate change if configured (match Dashboard)
+  const calculateInterestSmart = React.useCallback((
+    principal: number,
+    baseDate: string | undefined,
+    endDate: Date
+  ): number => {
+    const hasRateChange = interestRateChangeDate && interestRateBefore !== null && interestRateAfter !== null;
+    if (hasRateChange) {
+      const interestResult = calculateInterestWithRateChange(
+        principal,
+        baseDate,
+        endDate,
+        interestRateChangeDate,
+        interestRateBefore,
+        interestRateAfter
+      );
+      return interestResult.totalInterest;
+    }
+    return calculateInterest(principal, interestRate, baseDate, endDate);
+  }, [interestRate, interestRateChangeDate, interestRateBefore, interestRateAfter]);
 
   // Stats Calculation - tính tổng giá trị thực tế bao gồm tiền bổ sung + lãi phát sinh
   const totalProjects = projects.length;
@@ -66,9 +101,9 @@ export const Projects: React.FC<ProjectsProps> = ({ projects, transactions, inte
       const baseDate = t.effectiveInterestDate || p.interestStartDate;
       let interest = 0;
       if (t.status === TransactionStatus.DISBURSED && t.disbursementDate) {
-        interest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date(t.disbursementDate));
+        interest = calculateInterestSmart(t.compensation.totalApproved, baseDate, new Date(t.disbursementDate));
       } else if (t.status !== TransactionStatus.DISBURSED) {
-        interest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date());
+        interest = calculateInterestSmart(t.compensation.totalApproved, baseDate, new Date());
       }
       return sum + t.compensation.totalApproved + interest + supplementary;
     }, 0);
@@ -312,7 +347,7 @@ export const Projects: React.FC<ProjectsProps> = ({ projects, transactions, inte
                     const supplementary = t.supplementaryAmount || 0;
                     const baseDate = t.effectiveInterestDate || project.interestStartDate || (project as any).startDate;
                     const interest = t.disbursementDate
-                      ? calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date(t.disbursementDate))
+                      ? calculateInterestSmart(t.compensation.totalApproved, baseDate, new Date(t.disbursementDate))
                       : 0;
                     return acc + t.compensation.totalApproved + interest + supplementary;
                   }, 0);
@@ -330,9 +365,9 @@ export const Projects: React.FC<ProjectsProps> = ({ projects, transactions, inte
                   const baseDate = t.effectiveInterestDate || project.interestStartDate || (project as any).startDate;
                   let interest = 0;
                   if (t.status === TransactionStatus.DISBURSED && t.disbursementDate) {
-                    interest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date(t.disbursementDate));
+                    interest = calculateInterestSmart(t.compensation.totalApproved, baseDate, new Date(t.disbursementDate));
                   } else if (t.status !== TransactionStatus.DISBURSED) {
-                    interest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date());
+                    interest = calculateInterestSmart(t.compensation.totalApproved, baseDate, new Date());
                   }
                   return sum + t.compensation.totalApproved + interest + supplementary;
                 }, 0);

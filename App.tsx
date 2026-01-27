@@ -420,6 +420,9 @@ const App: React.FC = () => {
           projects={projects}
           transactions={transactions}
           interestRate={interestRate}
+          interestRateChangeDate={interestRateChangeDate}
+          interestRateBefore={interestRateBefore}
+          interestRateAfter={interestRateAfter}
           onImport={handleImportProject}
           onUpdateProject={async (p) => {
             await api.projects.update(p.id, p);
