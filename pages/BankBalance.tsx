@@ -52,8 +52,8 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
     if (transactions.length === 0) return { principal: 0, interest: 0, supplementary: 0, locked: 0 };
 
     let principal = 0; // Tổng gốc của các giao dịch chưa giải ngân
-    let tempInterest = 0; // Lãi tạm tính (chưa giải ngân)
-    let lockedInterest = 0; // Lãi đã chốt (đã giải ngân)
+    let tempInterest = 0; // Lãi tạm tính (chưa giải ngân) - giữ 2 chữ số thập phân
+    let lockedInterest = 0; // Lãi đã chốt (đã giải ngân) - giữ 2 chữ số thập phân
     let supplementaryAmount = 0; // Tổng tiền bổ sung từ các giao dịch chưa giải ngân
 
     transactions.forEach(t => {
@@ -74,20 +74,17 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
       } else if (t.status !== TransactionStatus.DISBURSED) {
         // Tổng gốc của các giao dịch chưa giải ngân
         principal += t.compensation.totalApproved;
-        // Lãi tạm tính (chỉ từ các giao dịch chưa giải ngân)
+        // Lãi tạm tính (chỉ từ các giao dịch chưa giải ngân) - giữ 2 chữ số thập phân, chỉ làm tròn ở kết quả tổng
         tempInterest += calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date());
         // Tiền bổ sung từ các giao dịch chưa giải ngân
         supplementaryAmount += t.supplementaryAmount || 0;
       }
     });
 
-    const finalLocked = Math.round(lockedInterest);
-    const finalInterest = Math.round(tempInterest);
-
     return {
       principal, // Tổng gốc chưa giải ngân
-      interest: finalInterest, // Lãi tạm tính
-      locked: finalLocked, // Lãi đã chốt (để tham khảo)
+      interest: tempInterest, // Lãi tạm tính (giữ 2 chữ số thập phân, sẽ làm tròn khi hiển thị)
+      locked: lockedInterest, // Lãi đã chốt (giữ 2 chữ số thập phân, sẽ làm tròn khi hiển thị)
       supplementary: supplementaryAmount // Tổng tiền bổ sung chưa giải ngân
     };
   }, [transactions, projects, interestRate, bankAccount.currentBalance]);
@@ -143,16 +140,22 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
             <Wallet size={120} strokeWidth={0.5} />
           </div>
           <h3 className="text-[11px] font-bold text-blue-700 uppercase tracking-widest mb-1">Số dư hiện tại</h3>
-          <p className="text-2xl font-bold text-slate-900 tracking-tight">{formatCurrency(pendingData.principal + pendingData.interest + pendingData.supplementary)}</p>
+          <p className="text-2xl font-bold text-slate-900 tracking-tight">
+            {formatCurrency(Math.round(pendingData.principal + pendingData.interest + pendingData.supplementary))}
+          </p>
           <p className="text-[10px] font-medium text-blue-600 mt-2">Bằng tiền chưa GN (gốc + lãi + bổ sung của các giao dịch chưa giải ngân)</p>
         </GlassCard>
 
 
         <GlassCard className="relative overflow-hidden border-emerald-300 bg-emerald-50/30">
           <h3 className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest mb-1">Lãi tạm tính</h3>
-          <p className="text-2xl font-bold text-emerald-600 tracking-tight">{formatCurrency(pendingData.interest)}</p>
+          <p className="text-2xl font-bold text-emerald-600 tracking-tight">
+            {formatCurrency(Math.round(pendingData.interest))}
+          </p>
           {pendingData.locked > 0 && (
-            <p className="text-[10px] font-medium text-slate-500 mt-1">Đã chốt: {formatCurrency(pendingData.locked)}</p>
+            <p className="text-[10px] font-medium text-slate-500 mt-1">
+              Đã chốt: {formatCurrency(Math.round(pendingData.locked))}
+            </p>
           )}
         </GlassCard>
       </div>

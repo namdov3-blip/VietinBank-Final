@@ -75,7 +75,9 @@ export const InterestCalculator: React.FC<InterestCalculatorProps> = ({
   }, [startDate, endDate]);
 
   const interest = calculateInterest(principal, rate, startDate, endDate);
-  const total = principal + interest;
+  // Kết quả lãi dự kiến được tính chi tiết đến 2 chữ số thập phân,
+  // nhưng khi hiển thị tổng gốc + lãi thì làm tròn tới đơn vị gần nhất
+  const roundedTotal = Math.round(principal + interest);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -170,13 +172,13 @@ export const InterestCalculator: React.FC<InterestCalculatorProps> = ({
 
         <GlassCard className="p-4 border-slate-200 shadow-sm">
           <p className="text-xs uppercase font-bold text-slate-500 mb-1">Lãi dự kiến</p>
-          <p className="text-xl font-bold text-emerald-700">{formatCurrency(interest)}</p>
+          <p className="text-xl font-bold text-emerald-700">{formatCurrency(Math.round(interest))}</p>
           <p className="text-[11px] text-slate-500 mt-1">Từ {formatDateDisplay(fromDate)} đến {formatDateDisplay(toDate)}</p>
         </GlassCard>
 
         <GlassCard className="p-4 border-slate-200 shadow-sm bg-blue-50/50">
           <p className="text-xs uppercase font-bold text-blue-700 mb-1 flex items-center gap-1"><Calculator size={14} /> Tổng gốc + lãi</p>
-          <p className="text-xl font-bold text-blue-900">{formatCurrency(total)}</p>
+          <p className="text-xl font-bold text-blue-900">{formatCurrency(roundedTotal)}</p>
         </GlassCard>
       </div>
     </div>

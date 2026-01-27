@@ -109,7 +109,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
     // UPDATE: Disbursed Money includes interest paid + supplementary amount
     const hasRateChange = interestRateChangeDate && interestRateBefore !== null && interestRateAfter !== null;
-    const moneyDisbursed = disbursedItems.reduce((sum, t) => {
+    const moneyDisbursedRaw = disbursedItems.reduce((sum, t) => {
       const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
       const project = projects.find(p => (p.id === pIdStr || p._id === pIdStr));
       const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
@@ -134,7 +134,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     }, 0);
 
     // UPDATE: Pending Money includes accrued interest for HOLD items + supplementary amount
-    const moneyNotDisbursed = notDisbursedItems.reduce((sum, t) => {
+    const moneyNotDisbursedRaw = notDisbursedItems.reduce((sum, t) => {
       const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
       const project = projects.find(p => (p.id === pIdStr || p._id === pIdStr));
       let interest = 0;
@@ -162,8 +162,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     // Calculate Interest logic for Stats - Link với tab Tổng quan / tab Số dư
     // CHỈ tính lãi từ các giao dịch CHƯA giải ngân (PENDING + HOLD) - Lãi tạm tính
     // Khi giải ngân, lãi của giao dịch đó sẽ được chuyển sang "đã chốt" và không còn trong tổng này
-    let tempInterest = 0; // Lãi tạm tính (chưa giải ngân)
-    let lockedInterest = 0; // Lãi đã chốt (đã giải ngân)
+    let tempInterest = 0; // Lãi tạm tính (chưa giải ngân) - giữ 2 chữ số thập phân
+    let lockedInterest = 0; // Lãi đã chốt (đã giải ngân) - giữ 2 chữ số thập phân
 
     filtered.forEach(t => {
       const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
@@ -203,7 +203,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       }
     });
 
-    const totalInterest = tempInterest; // Chỉ trả về lãi tạm tính
+    const totalInterest = tempInterest; // Chỉ trả về lãi tạm tính (chưa làm tròn)
+
+    // Làm tròn kết quả tổng cho hiển thị
+    const moneyDisbursed = Math.round(moneyDisbursedRaw);
+    const moneyNotDisbursed = Math.round(moneyNotDisbursedRaw);
 
     return {
       uniqueProjects,
@@ -211,8 +215,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       notDisbursedCount: notDisbursedItems.length,
       moneyDisbursed,
       moneyNotDisbursed,
-      accruedInterest: totalInterest,
-      lockedInterest: lockedInterest // Lãi đã chốt (để hiển thị)
+      accruedInterest: Math.round(totalInterest),
+      lockedInterest: Math.round(lockedInterest) // Lãi đã chốt (để hiển thị)
     };
   }, [filtered, interestRate, projects]);
 

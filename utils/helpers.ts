@@ -123,7 +123,9 @@ export const calculateInterest = (principal: number, ratePerYear: number, baseDa
 
     if (daysInPeriod > 0) {
       // Tính lãi cho kỳ này dựa trên số dư hiện tại (đã bao gồm lãi từ các kỳ trước)
-      const periodInterest = Math.round(currentBalance * dailyRate * daysInPeriod);
+      // Giữ 2 chữ số thập phân trong quá trình tính toán, tránh làm tròn nguyên từng kỳ
+      const rawPeriodInterest = currentBalance * dailyRate * daysInPeriod;
+      const periodInterest = Math.round(rawPeriodInterest * 100) / 100;
       totalInterest += periodInterest;
       
       // Cộng lãi vào gốc để tính kỳ tiếp theo (lãi nhập gốc)
@@ -254,7 +256,8 @@ export const calculateInterestWithRateChange = (
             );
             if (daysBeforeChange > 0) {
                 const dailyRateBefore = (rateBefore / 100) / 365;
-                const periodInterestBefore = Math.round(currentBalance * dailyRateBefore * daysBeforeChange);
+                const rawInterestBefore = currentBalance * dailyRateBefore * daysBeforeChange;
+                const periodInterestBefore = Math.round(rawInterestBefore * 100) / 100;
                 interestBefore += periodInterestBefore;
                 totalInterest += periodInterestBefore;
                 currentBalance += periodInterestBefore;
@@ -267,7 +270,8 @@ export const calculateInterestWithRateChange = (
             );
             if (daysAfterChange > 0) {
                 const dailyRateAfter = (rateAfter / 100) / 365;
-                const periodInterestAfter = Math.round(currentBalance * dailyRateAfter * daysAfterChange);
+                const rawInterestAfter = currentBalance * dailyRateAfter * daysAfterChange;
+                const periodInterestAfter = Math.round(rawInterestAfter * 100) / 100;
                 interestAfter += periodInterestAfter;
                 totalInterest += periodInterestAfter;
                 currentBalance += periodInterestAfter;
@@ -283,7 +287,8 @@ export const calculateInterestWithRateChange = (
                 const useRateAfter = currentDate >= changeDateVN;
                 const currentRate = useRateAfter ? rateAfter : rateBefore;
                 const dailyRate = (currentRate / 100) / 365;
-                const periodInterest = Math.round(currentBalance * dailyRate * daysInPeriod);
+                const rawPeriodInterest = currentBalance * dailyRate * daysInPeriod;
+                const periodInterest = Math.round(rawPeriodInterest * 100) / 100;
                 
                 if (useRateAfter) {
                     interestAfter += periodInterest;

@@ -130,7 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const statsDisbursedTrans = filteredTransactions.filter(t => t.status === TransactionStatus.DISBURSED);
 
-  const statsDisbursedAmount = statsDisbursedTrans.reduce((acc, t) => {
+  const statsDisbursedAmountRaw = statsDisbursedTrans.reduce((acc, t) => {
     // Use stored disbursedTotal for exact amount (avoids timezone calculation differences)
     if ((t as any).disbursedTotal) {
       return acc + (t as any).disbursedTotal;
@@ -145,11 +145,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const supplementary = t.supplementaryAmount || 0;
     return acc + t.compensation.totalApproved + interest + supplementary;
   }, 0);
+  // Chỉ làm tròn ở kết quả tổng cuối cùng
+  const statsDisbursedAmount = Math.round(statsDisbursedAmountRaw);
 
   const statsPendingTrans = filteredTransactions.filter(t => t.status !== TransactionStatus.DISBURSED);
   const statsPendingCount = statsPendingTrans.length;
 
-  const statsPendingAmount = statsPendingTrans.reduce((acc, t) => {
+  const statsPendingAmountRaw = statsPendingTrans.reduce((acc, t) => {
     const project = projects.find(p => p.id === t.projectId);
     const baseDate = t.effectiveInterestDate || project?.interestStartDate;
     const interest = calculateInterestSmart(t.compensation.totalApproved, baseDate, new Date());
@@ -157,12 +159,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const transactionTotal = t.compensation.totalApproved + interest + supplementary;
     return acc + transactionTotal;
   }, 0);
+  // Chỉ làm tròn ở kết quả tổng cuối cùng
+  const statsPendingAmount = Math.round(statsPendingAmountRaw);
 
   // Tổng lãi phát sinh - Link với tab Giao dịch / tab Số dư
   // CHỈ tính lãi từ các giao dịch CHƯA giải ngân (PENDING + HOLD) - Lãi tạm tính
   // Khi giải ngân, lãi của giao dịch đó sẽ được chuyển sang "đã chốt" và không còn trong tổng này
-  let tempInterest = 0; // Lãi tạm tính (chưa giải ngân)
-  let lockedInterest = 0; // Lãi đã chốt (đã giải ngân)
+  let tempInterest = 0; // Lãi tạm tính (chưa giải ngân) - giữ 2 chữ số thập phân
+  let lockedInterest = 0; // Lãi đã chốt (đã giải ngân) - giữ 2 chữ số thập phân
 
   filteredTransactions.forEach(t => {
     const project = projects.find(p => p.id === t.projectId);
@@ -186,8 +190,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   });
 
-  const statsTotalInterest = tempInterest; // Chỉ trả về lãi tạm tính
-  const statsLockedInterest = lockedInterest; // Lãi đã chốt (để hiển thị)
+  const statsTotalInterest = tempInterest; // Chỉ trả về lãi tạm tính (chưa làm tròn)
+  const statsLockedInterest = lockedInterest; // Lãi đã chốt (chưa làm tròn)
 
   // Calculate breakdown for interest if rate change is configured
   let interestBeforeTotal = 0;
@@ -214,6 +218,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     });
   }
+
+  // Làm tròn kết quả tổng cho hiển thị (giữ nội bộ 2 chữ số thập phân)
+  const statsTotalInterestRounded = Math.round(statsTotalInterest);
+  const statsLockedInterestRounded = Math.round(statsLockedInterest);
+  const interestBeforeTotalRounded = Math.round(interestBeforeTotal);
+  const interestAfterTotalRounded = Math.round(interestAfterTotal);
 
   // Tổng giá trị dự án = statsDisbursedAmount + statsPendingAmount
   // Using the same calculation as above for consistency
@@ -252,7 +262,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           return acc + t.compensation.totalApproved + interest + supplementary;
         }, 0);
 
-      const pInterest = projectTrans.reduce((acc, t) => {
+      const pInterestRaw = projectTrans.reduce((acc, t) => {
         const baseDate = t.effectiveInterestDate || project.interestStartDate;
         if (t.status === TransactionStatus.DISBURSED && t.disbursementDate) {
           // Use disbursedTotal to extract exact interest
@@ -266,6 +276,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         }
         return acc;
       }, 0);
+
+      // Làm tròn tổng lãi theo dự án ở bước cuối
+      const pInterest = Math.round(pInterestRaw);
 
       const completionRate = project.totalBudget > 0 ? (pDisbursed / project.totalBudget) * 100 : 0;
 
@@ -461,16 +474,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
         />
         <KPICard
           title="LÃI PHÁT SINH"
-          value={formatCurrency(statsTotalInterest)}
+          value={formatCurrency(statsTotalInterestRounded)}
           subValue={
             hasRateChange ? (
               <>
-                <div>Trước {interestRateChangeDate ? formatDate(interestRateChangeDate) : '01/01/2026'} ({interestRateBefore}%): {formatCurrency(interestBeforeTotal)}</div>
-                <div>Từ {interestRateChangeDate ? formatDate(interestRateChangeDate) : '01/01/2026'} ({interestRateAfter}%): {formatCurrency(interestAfterTotal)}</div>
-                {statsLockedInterest > 0 && <div className="mt-1 pt-1 border-t border-slate-300">Đã chốt: {formatCurrency(statsLockedInterest)}</div>}
+                <div>Trước {interestRateChangeDate ? formatDate(interestRateChangeDate) : '01/01/2026'} ({interestRateBefore}%): {formatCurrency(interestBeforeTotalRounded)}</div>
+                <div>Từ {interestRateChangeDate ? formatDate(interestRateChangeDate) : '01/01/2026'} ({interestRateAfter}%): {formatCurrency(interestAfterTotalRounded)}</div>
+                {statsLockedInterestRounded > 0 && (
+                  <div className="mt-1 pt-1 border-t border-slate-300">
+                    Đã chốt: {formatCurrency(statsLockedInterestRounded)}
+                  </div>
+                )}
               </>
             ) : (
-              statsLockedInterest > 0 ? `Đã chốt: ${formatCurrency(statsLockedInterest)}` : `Lãi suất: ${interestRate}%`
+              statsLockedInterestRounded > 0
+                ? `Đã chốt: ${formatCurrency(statsLockedInterestRounded)}`
+                : `Lãi suất: ${interestRate}%`
             )
           }
           icon={PiggyBank}
