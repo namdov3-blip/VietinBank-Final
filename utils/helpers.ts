@@ -2,6 +2,8 @@
 import { Transaction, Project, TransactionStatus, AuditLogItem } from '../types';
 // Import date-fns-tz functions (v3 uses toZonedTime and fromZonedTime)
 import { toZonedTime, fromZonedTime, format as formatTz } from 'date-fns-tz';
+// Import XLSX for proper Excel export (multiple columns)
+import * as XLSX from 'xlsx';
 
 // Timezone constant for Vietnam
 export const VN_TIMEZONE = 'Asia/Ho_Chi_Minh';
@@ -497,7 +499,7 @@ export const exportTransactionsToExcel = (transactions: Transaction[], projects:
     return sum;
   }, 0);
 
-  // 2. Build CSV Content
+  // 2. Build rows (2D array) for Excel
   const rows = [];
 
   // --- Part A: Statistics Header (The 6 Boxes) ---
@@ -579,11 +581,29 @@ export const exportTransactionsToExcel = (transactions: Transaction[], projects:
     ]);
   });
 
-  // Convert arrays to CSV string
-  const csvContent = rows.map(e => e.join(",")).join("\n");
-  const fileName = `Bao_cao_giao_dich_${formatTz(getVNNow(), 'yyyy-MM-dd', { timeZone: VN_TIMEZONE })}.csv`;
+  // 3. Convert rows to XLSX worksheet & workbook
+  const worksheet = XLSX.utils.aoa_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Bao_cao');
 
-  downloadCSV(csvContent, fileName);
+  // 4. Generate XLSX file (binary) and trigger download
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+
+  const fileName = `Bao_cao_giao_dich_${formatTz(getVNNow(), 'yyyy-MM-dd', { timeZone: VN_TIMEZONE })}.xlsx`;
+
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+
+  link.href = url;
+  link.download = fileName;
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 export const exportAuditLogsToExcel = (auditLogs: AuditLogItem[]) => {
