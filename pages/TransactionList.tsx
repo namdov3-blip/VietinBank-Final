@@ -243,8 +243,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   };
 
   const handleDownload = () => {
-    // Export ALL transactions as requested, not just filtered ones
-    exportTransactionsToExcel(transactions, projects, interestRate);
+    // Export ONLY filtered transactions (the same conditions as current table/search/date filters)
+    exportTransactionsToExcel(filtered, projects, interestRate);
   };
 
   const StatBox = ({ label, value, subValue, icon: Icon, colorClass }: any) => (
