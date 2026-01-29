@@ -60,6 +60,21 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       }
+    },
+    optimizeDeps: {
+      include: ['xlsx'],
+      exclude: []
+    },
+    build: {
+      commonjsOptions: {
+        include: [/xlsx/, /node_modules/],
+        transformMixedEsModules: true
+      },
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     }
   };
 });
