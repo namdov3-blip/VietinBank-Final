@@ -53,10 +53,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
   const getRelevantDate = React.useCallback((t: Transaction, projectParam?: Project) => {
     const project = projectParam || resolveProject(t);
+    // ALWAYS return the interest start date for filtering, regardless of disbursement status
+    // This ensures transactions are filtered by their interest calculation start date,
+    // not by their actual disbursement date, which may be much later
     const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
-    if (t.status === TransactionStatus.DISBURSED && t.disbursementDate) {
-      return t.disbursementDate;
-    }
     return baseDate;
   }, [resolveProject]);
 

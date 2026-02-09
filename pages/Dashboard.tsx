@@ -85,10 +85,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const getRelevantDate = React.useCallback((t: Transaction) => {
     const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
     const project = projects.find(p => (p.id === pIdStr || (p as any)._id === pIdStr));
+    // ALWAYS return the interest start date for filtering, regardless of disbursement status
+    // This ensures transactions are filtered by their interest calculation start date,
+    // not by their actual disbursement date, which may be much later
     const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
-    if (t.status === TransactionStatus.DISBURSED && t.disbursementDate) {
-      return t.disbursementDate;
-    }
     return baseDate;
   }, [projects]);
 
