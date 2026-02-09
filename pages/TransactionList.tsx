@@ -76,6 +76,50 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     return true;
   }, [startDate, endDate]);
 
+  // Point-in-Time helpers: Determine effective status and calculation date at filter time
+  const getEffectiveStatus = React.useCallback((t: Transaction): TransactionStatus => {
+    // If no end date filter, return actual status
+    if (!endDate) return t.status;
+    
+    // If transaction has disbursementDate and it's AFTER the filter end date,
+    // treat it as NOT disbursed (point-in-time view)
+    if (t.disbursementDate) {
+      const disbursementDateTime = new Date(t.disbursementDate).getTime();
+      const filterEndTime = new Date(endDate).setHours(23, 59, 59, 999);
+      
+      if (disbursementDateTime > filterEndTime) {
+        // At filter time, this transaction was not yet disbursed
+        return TransactionStatus.PENDING;
+      }
+    }
+    
+    // Otherwise return actual status
+    return t.status;
+  }, [endDate]);
+
+  const getEffectiveCalculationDate = React.useCallback((t: Transaction): Date => {
+    // If no end date filter, use current logic
+    if (!endDate) {
+      if (t.status === TransactionStatus.DISBURSED && t.disbursementDate) {
+        return new Date(t.disbursementDate);
+      }
+      return new Date(); // Current date for pending
+    }
+    
+    // With filter: check if transaction was disbursed at filter time
+    const effectiveStatus = getEffectiveStatus(t);
+    
+    if (effectiveStatus === TransactionStatus.DISBURSED && t.disbursementDate) {
+      // Was disbursed before filter date, use disbursementDate
+      return new Date(t.disbursementDate);
+    } else {
+      // Was not disbursed at filter time, use filter end date
+      const filterEnd = new Date(endDate);
+      filterEnd.setHours(23, 59, 59, 999);
+      return filterEnd;
+    }
+  }, [endDate, getEffectiveStatus]);
+
   // Filter Data
   const filtered = useMemo(() => {
     // Hỗ trợ nhiều điều kiện, cách nhau bởi dấu "," hoặc ":"
@@ -146,41 +190,41 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   // Statistics Calculations based on Filtered Data
   const stats = useMemo(() => {
     const uniqueProjects = new Set(filtered.map(t => (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString())).size;
-    const disbursedItems = filtered.filter(t => t.status === TransactionStatus.DISBURSED);
-    const notDisbursedItems = filtered.filter(t => t.status !== TransactionStatus.DISBURSED);
+    // Use effective status at filter time instead of actual status
+    const disbursedItems = filtered.filter(t => getEffectiveStatus(t) === TransactionStatus.DISBURSED);
+    const notDisbursedItems = filtered.filter(t => getEffectiveStatus(t) !== TransactionStatus.DISBURSED);
 
     // UPDATE: Disbursed Money includes interest paid + supplementary amount
     // Bao gồm cả tiền đã rút một phần từ các giao dịch chưa giải ngân hoàn toàn
     const hasRateChange = interestRateChangeDate && interestRateBefore !== null && interestRateAfter !== null;
     
-    // 1. Tiền đã giải ngân hoàn toàn (DISBURSED)
+    // 1. Tiền đã giải ngân hoàn toàn (DISBURSED at filter time)
     const moneyDisbursedRawFromDisbursed = disbursedItems.reduce((sum, t) => {
-      // Use stored disbursedTotal when available for accuracy
-      if ((t as any).disbursedTotal) {
-        return sum + (t as any).disbursedTotal;
-      }
-      // Fallback to calculation for older transactions
       const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
       const project = projects.find(p => (p.id === pIdStr || p._id === pIdStr));
       const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
+      const principalBase = (t as any).principalForInterest ?? t.compensation.totalApproved;
+      
+      // Use effective calculation date (respects filter date)
+      const calcDate = getEffectiveCalculationDate(t);
+      
       let interest = 0;
-      if (t.disbursementDate) {
-        if (hasRateChange) {
-          const interestResult = calculateInterestWithRateChange(
-            t.compensation.totalApproved,
-            baseDate,
-            new Date(t.disbursementDate),
-            interestRateChangeDate,
-            interestRateBefore,
-            interestRateAfter
-          );
-          interest = interestResult.totalInterest;
-        } else {
-          interest = calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date(t.disbursementDate));
-        }
+      if (hasRateChange) {
+        const interestResult = calculateInterestWithRateChange(
+          principalBase,
+          baseDate,
+          calcDate,
+          interestRateChangeDate,
+          interestRateBefore,
+          interestRateAfter
+        );
+        interest = interestResult.totalInterest;
+      } else {
+        interest = calculateInterest(principalBase, interestRate, baseDate, calcDate);
       }
+      
       const supplementary = t.supplementaryAmount || 0;
-      return sum + t.compensation.totalApproved + interest + supplementary;
+      return sum + principalBase + interest + supplementary;
     }, 0);
 
     // 2. Tiền đã rút một phần từ các giao dịch chưa giải ngân hoàn toàn (PENDING/HOLD)
@@ -198,26 +242,28 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     const moneyNotDisbursedRaw = notDisbursedItems.reduce((sum, t) => {
       const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
       const project = projects.find(p => (p.id === pIdStr || p._id === pIdStr));
+      const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
       // Nếu đã rút một phần, dùng principalForInterest làm gốc tính lãi (phần còn lại)
       const principalBase = (t as any).principalForInterest ?? t.compensation.totalApproved;
+      
+      // Use effective calculation date (respects filter date)
+      const calcDate = getEffectiveCalculationDate(t);
+      
       let interest = 0;
-      // TẤT CẢ hồ sơ chưa giải ngân (PENDING + HOLD) đều phải được tính lãi nếu baseDate < hôm nay
-      if (t.status !== TransactionStatus.DISBURSED) {
-        const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
-        if (hasRateChange) {
-          const interestResult = calculateInterestWithRateChange(
-            principalBase,
-            baseDate,
-            new Date(),
-            interestRateChangeDate,
-            interestRateBefore,
-            interestRateAfter
-          );
-          interest = interestResult.totalInterest;
-        } else {
-          interest = calculateInterest(principalBase, interestRate, baseDate, new Date());
-        }
+      if (hasRateChange) {
+        const interestResult = calculateInterestWithRateChange(
+          principalBase,
+          baseDate,
+          calcDate,
+          interestRateChangeDate,
+          interestRateBefore,
+          interestRateAfter
+        );
+        interest = interestResult.totalInterest;
+      } else {
+        interest = calculateInterest(principalBase, interestRate, baseDate, calcDate);
       }
+      
       const supplementary = t.supplementaryAmount || 0;
       // Tính trên phần gốc còn lại (principalBase) + lãi + bổ sung
       return sum + principalBase + interest + supplementary;
@@ -235,45 +281,46 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
       // Nếu đã rút một phần, dùng principalForInterest làm gốc tính lãi (phần còn lại)
       const principalBase = (t as any).principalForInterest ?? t.compensation.totalApproved;
+      
+      // Use effective status at filter time
+      const effectiveStatus = getEffectiveStatus(t);
+      const calcDate = getEffectiveCalculationDate(t);
 
-      if (t.status === TransactionStatus.DISBURSED && t.disbursementDate) {
-        // Lãi đã chốt (không tính vào tổng lãi PS)
-        // Prefer disbursedTotal for accuracy (matching Dashboard logic)
-        if ((t as any).disbursedTotal) {
-          const supplementary = t.supplementaryAmount || 0;
-          const extractedInterest = (t as any).disbursedTotal - t.compensation.totalApproved - supplementary;
-          lockedInterest += extractedInterest;
-        } else {
-          if (hasRateChange) {
-            const interestResult = calculateInterestWithRateChange(
-              t.compensation.totalApproved,
-              baseDate,
-              new Date(t.disbursementDate),
-              interestRateChangeDate,
-              interestRateBefore,
-              interestRateAfter
-            );
-            lockedInterest += interestResult.totalInterest;
-          } else {
-            lockedInterest += calculateInterest(t.compensation.totalApproved, interestRate, baseDate, new Date(t.disbursementDate));
-          }
-        }
-      } else if (t.status !== TransactionStatus.DISBURSED) {
-        // Lãi tạm tính (chỉ từ các giao dịch chưa giải ngân hoàn toàn)
-        // Tính trên phần gốc còn lại (principalForInterest) để tránh tính trùng
+      if (effectiveStatus === TransactionStatus.DISBURSED) {
+        // Lãi đã chốt (tại thời điểm filter)
+        let interestForTransaction = 0;
         if (hasRateChange) {
           const interestResult = calculateInterestWithRateChange(
             principalBase,
             baseDate,
-            new Date(),
+            calcDate,
             interestRateChangeDate,
             interestRateBefore,
             interestRateAfter
           );
-          tempInterest += interestResult.totalInterest;
+          interestForTransaction = interestResult.totalInterest;
         } else {
-          tempInterest += calculateInterest(principalBase, interestRate, baseDate, new Date());
+          interestForTransaction = calculateInterest(principalBase, interestRate, baseDate, calcDate);
         }
+        lockedInterest += interestForTransaction;
+      } else {
+        // Lãi tạm tính (chưa giải ngân tại thời điểm filter)
+        // Tính trên phần gốc còn lại (principalForInterest) để tránh tính trùng
+        let interestForTransaction = 0;
+        if (hasRateChange) {
+          const interestResult = calculateInterestWithRateChange(
+            principalBase,
+            baseDate,
+            calcDate,
+            interestRateChangeDate,
+            interestRateBefore,
+            interestRateAfter
+          );
+          interestForTransaction = interestResult.totalInterest;
+        } else {
+          interestForTransaction = calculateInterest(principalBase, interestRate, baseDate, calcDate);
+        }
+        tempInterest += interestForTransaction;
       }
     });
 
@@ -292,7 +339,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       accruedInterest: roundTo2(totalInterest),
       lockedInterest: roundTo2(lockedInterest) // Lãi đã chốt (để hiển thị)
     };
-  }, [filtered, interestRate, projects]);
+  }, [filtered, interestRate, projects, interestRateChangeDate, interestRateBefore, interestRateAfter, getEffectiveStatus, getEffectiveCalculationDate]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -549,48 +596,35 @@ export const TransactionList: React.FC<TransactionListProps> = ({
               {paginatedData.map((t, index) => {
 
                 const project = resolveProject(t);
-                const isDisbursed = t.status === TransactionStatus.DISBURSED;
+                // Use effective status at filter time
+                const effectiveStatus = getEffectiveStatus(t);
+                const isDisbursed = effectiveStatus === TransactionStatus.DISBURSED;
 
-                // --- INTEREST CALCULATION LOGIC ---
+                // --- INTEREST CALCULATION LOGIC (Point-in-Time) ---
                 // Nếu đã rút một phần, dùng principalForInterest làm gốc tính lãi (để tính lãi kép trên phần còn lại)
                 const principalBase = (t as any).principalForInterest ?? t.compensation.totalApproved;
                 const baseDate = t.effectiveInterestDate || project?.interestStartDate || (project as any)?.startDate;
+                
+                // Use effective calculation date (respects filter date)
+                const calcDate = getEffectiveCalculationDate(t);
+                
                 let currentInterest = 0;
 
                 // Use rate change calculation if configured
                 const hasRateChange = interestRateChangeDate && interestRateBefore !== null && interestRateAfter !== null;
 
-                if (isDisbursed && t.disbursementDate) {
-                  // CASE 1: Đã giải ngân -> Lãi tính đến ngày thực tế chi trả (đóng băng)
-                  if (hasRateChange) {
-                    const interestResult = calculateInterestWithRateChange(
-                      principalBase,
-                      baseDate,
-                      new Date(t.disbursementDate),
-                      interestRateChangeDate,
-                      interestRateBefore,
-                      interestRateAfter
-                    );
-                    currentInterest = interestResult.totalInterest;
-                  } else {
-                    currentInterest = calculateInterest(principalBase, interestRate, baseDate, new Date(t.disbursementDate));
-                  }
-                } else if (!isDisbursed) {
-                  // CASE 2: Chưa giải ngân (bao gồm cả PENDING & HOLD) -> Lãi tính đến hiện tại (tiếp tục chạy)
-                  // Nếu đã rút một phần, lãi sẽ tính kép trên principalForInterest từ effectiveInterestDate
-                  if (hasRateChange) {
-                    const interestResult = calculateInterestWithRateChange(
-                      principalBase,
-                      baseDate,
-                      new Date(),
-                      interestRateChangeDate,
-                      interestRateBefore,
-                      interestRateAfter
-                    );
-                    currentInterest = interestResult.totalInterest;
-                  } else {
-                    currentInterest = calculateInterest(principalBase, interestRate, baseDate, new Date());
-                  }
+                if (hasRateChange) {
+                  const interestResult = calculateInterestWithRateChange(
+                    principalBase,
+                    baseDate,
+                    calcDate,
+                    interestRateChangeDate,
+                    interestRateBefore,
+                    interestRateAfter
+                  );
+                  currentInterest = interestResult.totalInterest;
+                } else {
+                  currentInterest = calculateInterest(principalBase, interestRate, baseDate, calcDate);
                 }
 
                 const supplementary = t.supplementaryAmount || 0;
@@ -709,7 +743,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                     </td>
                     <td className="px-4 py-3 border-r border-slate-200 text-center">
                       <div className="flex items-center justify-center">
-                        <StatusBadge status={t.status} />
+                        <StatusBadge status={effectiveStatus} />
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
