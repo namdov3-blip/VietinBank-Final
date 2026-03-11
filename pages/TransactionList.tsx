@@ -465,6 +465,57 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                 </button>
                 <button
                   onClick={async () => {
+                    const pendingIds = Array.from(selectedTransactions).filter(id => {
+                      const t = transactions.find(tx => tx.id === id);
+                      return t && t.status !== TransactionStatus.DISBURSED;
+                    });
+
+                    if (pendingIds.length === 0) {
+                      alert('Tất cả giao dịch đã chọn đều đã giải ngân rồi.');
+                      return;
+                    }
+
+                    const skippedCount = selectedTransactions.size - pendingIds.length;
+                    let confirmMsg = `Xác nhận giải ngân ${pendingIds.length} giao dịch?\n\nHệ thống sẽ:\n• Chốt lãi và chuyển trạng thái sang "Đã giải ngân"\n• Tạo giao dịch rút tiền ngân hàng tương ứng\n• Ngừng tính lãi cho các giao dịch này`;
+                    if (skippedCount > 0) {
+                      confirmMsg += `\n\n(${skippedCount} giao dịch đã giải ngân sẽ được bỏ qua)`;
+                    }
+                    if (!window.confirm(confirmMsg)) return;
+
+                    try {
+                      const results: { success: boolean; id: string; error?: string }[] = [];
+                      for (const id of pendingIds) {
+                        try {
+                          await api.transactions.updateStatus(id, TransactionStatus.DISBURSED, currentUser.name);
+                          results.push({ success: true, id });
+                        } catch (err: any) {
+                          console.error(`Failed to disburse transaction ${id}:`, err);
+                          results.push({ success: false, id, error: err.message });
+                        }
+                      }
+                      const successCount = results.filter(r => r.success).length;
+                      const failCount = results.length - successCount;
+
+                      if (failCount > 0) {
+                        alert(`Đã giải ngân ${successCount} giao dịch thành công.\n${failCount} giao dịch thất bại.`);
+                      } else {
+                        alert(`Đã giải ngân thành công ${successCount} giao dịch!`);
+                      }
+
+                      setSelectedTransactions(new Set());
+                      if (onDelete) onDelete();
+                    } catch (error: any) {
+                      console.error('Batch disbursement error:', error);
+                      alert('Lỗi khi giải ngân hàng loạt: ' + (error.message || 'Unknown error'));
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  <CheckCircle size={16} />
+                  <span>Giải ngân hàng loạt ({selectedTransactions.size})</span>
+                </button>
+                <button
+                  onClick={async () => {
                     if (selectedTransactions.size === 0) return;
                     
                     const confirmMsg = `Bạn có chắc chắn muốn xóa ${selectedTransactions.size} giao dịch đã chọn?\n\nHành động này không thể hoàn tác.`;
