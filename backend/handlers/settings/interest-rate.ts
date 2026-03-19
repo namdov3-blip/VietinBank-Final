@@ -68,6 +68,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             let settings = await (Settings as any).findOne({ key: 'global' });
             const oldRate = settings?.interestRate || 6.5;
+            const oldChangeDate = settings?.interestRateChangeDate as Date | undefined;
+            const oldRateBefore = settings?.interestRateBefore as number | undefined;
+            const oldRateAfter = settings?.interestRateAfter as number | undefined;
 
             if (!settings) {
                 settings = new Settings({
@@ -101,6 +104,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
             if (interestRateAfter !== undefined) {
                 settings.interestRateAfter = interestRateAfter;
+            }
+
+            // Save interest history when changing the "rate change" configuration.
+            // UI "Lịch sử thay đổi lãi suất" reuses `interestHistory` fields (oldRate/newRate),
+            // so we store (before mốc -> after mốc).
+            if (
+                interestRateChangeDate !== undefined ||
+                interestRateBefore !== undefined ||
+                interestRateAfter !== undefined
+            ) {
+                const newChangeDate = settings.interestRateChangeDate as Date | undefined;
+                const newRateBefore = settings.interestRateBefore as number | undefined;
+                const newRateAfter = settings.interestRateAfter as number | undefined;
+
+                const changed =
+                    (oldChangeDate?.getTime() || null) !== (newChangeDate?.getTime() || null) ||
+                    oldRateBefore !== newRateBefore ||
+                    oldRateAfter !== newRateAfter;
+
+                if (changed && newRateBefore !== undefined && newRateAfter !== undefined) {
+                    settings.interestHistory.push({
+                        timestamp: new Date(),
+                        oldRate: oldRateBefore ?? newRateBefore ?? 0,
+                        newRate: newRateAfter ?? 0,
+                        actor: payload.name
+                    });
+                }
             }
 
             await settings.save();

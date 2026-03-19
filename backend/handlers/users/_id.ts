@@ -44,8 +44,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { name, password, role, permissions, organization, status } = req.body;
 
             const updateData: any = {};
-            if (status !== undefined && status === 'Active' && payload.role !== 'Admin') {
-                return res.status(403).json({ error: 'Chỉ Admin mới được phê duyệt tài khoản.' });
+            // Pending -> Active là hành động phê duyệt đăng ký
+            // Cho phép cả Admin và SuperAdmin phê duyệt.
+            if (
+                status !== undefined &&
+                status === 'Active' &&
+                payload.role !== 'Admin' &&
+                payload.role !== 'SuperAdmin'
+            ) {
+                return res.status(403).json({ error: 'Chỉ Admin hoặc SuperAdmin mới được phê duyệt tài khoản.' });
             }
             if (name) updateData.name = name;
             if (role) updateData.role = role;

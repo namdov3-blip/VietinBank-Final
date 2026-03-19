@@ -123,8 +123,8 @@ export const Admin: React.FC<AdminProps> = ({
   };
 
   const handleApprovePendingUser = async (user: User) => {
-    // Chỉ tài khoản Admin mới được phê duyệt
-    if (currentUser.role !== 'Admin') {
+    // Admin và SuperAdmin đều có quyền phê duyệt
+    if (currentUser.role !== 'Admin' && currentUser.role !== 'SuperAdmin') {
       alert('Bạn không có quyền phê duyệt tài khoản.');
       return;
     }
@@ -756,7 +756,7 @@ export const Admin: React.FC<AdminProps> = ({
                 Tài khoản đăng ký mới sẽ ở trạng thái <span className="font-bold">Chờ duyệt</span> cho đến khi được Admin phê duyệt.
               </p>
               <p className="text-xs font-medium text-slate-600 leading-relaxed mt-3">
-                Chỉ các tài khoản thuộc nhóm <span className="font-bold">Admin</span> (trong hệ thống) mới được phép phê duyệt.
+                Chỉ các tài khoản thuộc nhóm <span className="font-bold">Admin</span> hoặc <span className="font-bold">SuperAdmin</span> (trong hệ thống) mới được phép phê duyệt.
               </p>
             </GlassCard>
           </div>
@@ -765,60 +765,8 @@ export const Admin: React.FC<AdminProps> = ({
 
       {/* --- INTEREST SETTINGS TAB --- */}
       {activeSubTab === 'interest' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <div className="space-y-6">
-            <GlassCard className="border-slate-300 shadow-md p-8">
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-3">Lãi suất năm (%)</label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  value={interestRateInput}
-                  onChange={(e) => handleInterestRateChange(e.target.value)}
-                  onBlur={(e) => {
-                    const parsed = parseNumberFromComma(e.target.value);
-                    setInterestRateInput(formatNumberWithComma(parsed));
-                  }}
-                  placeholder="Nhập lãi suất (ví dụ: 6,5 hoặc 6.5)"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-lg font-bold text-black focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-inner transition-all"
-                />
-                <button
-                  onClick={handleSaveInterest}
-                  className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2"
-                >
-                  <Save size={16} /> Lưu
-                </button>
-              </div>
-              <p className="text-[11px] font-medium text-slate-600 mt-3 leading-relaxed">
-                * Lưu ý: Lãi suất năm áp dụng cho các dự án và hộ dân.
-              </p>
-            </GlassCard>
-
-            <GlassCard className="border-slate-300 shadow-md p-8">
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-3">Lãi suất gửi tiết kiệm NH (% tháng)</label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  value={bankInterestRateInput}
-                  onChange={(e) => handleBankInterestRateChange(e.target.value)}
-                  onBlur={(e) => {
-                    const parsed = parseNumberFromComma(e.target.value);
-                    setBankInterestRateInput(formatNumberWithComma(parsed));
-                  }}
-                  placeholder="Nhập lãi suất NH (ví dụ: 0,5 hoặc 0.5)"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-lg font-bold text-black focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-inner transition-all"
-                />
-                <button
-                  onClick={handleSaveBankInterest}
-                  className="bg-emerald-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center gap-2"
-                >
-                  <Save size={16} /> Lưu
-                </button>
-              </div>
-              <p className="text-[11px] font-medium text-slate-600 mt-3 leading-relaxed">
-                * Lưu ý: Lãi suất này dùng để tự động cộng lãi tiết kiệm vào mùng 1 hàng tháng.
-              </p>
-            </GlassCard>
-
             <GlassCard className="border-slate-300 shadow-md p-8">
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-3">Cấu hình mốc thay đổi lãi suất</label>
               <div className="space-y-4">

@@ -17,7 +17,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const payload = await authMiddleware(req, res, ['Admin']);
+        // Admin và SuperAdmin đều có quyền xem audit log
+        const payload = await authMiddleware(req, res, ['Admin', 'SuperAdmin']);
         if (!payload) return;
 
         await connectDB();
