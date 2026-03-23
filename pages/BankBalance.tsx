@@ -174,7 +174,7 @@ export const BankBalance: React.FC<BankBalanceProps> = ({
     <div className="space-y-6 animate-fade-in pb-12">
       <div className="flex justify-between items-end pb-2">
         <div>
-          <h2 className="text-2xl font-medium text-black tracking-tight">Số dư tài khoản</h2>
+          <h2 className="text-2xl font-medium text-black tracking-tight">Hoạt động</h2>
           <p className="text-sm font-medium text-slate-500 mt-1">Đối soát & Theo dõi dòng tiền thực tế</p>
         </div>
       </div>

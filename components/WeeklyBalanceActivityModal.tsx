@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Clock, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { HoatDongActivityIcon } from './HoatDongActivityIcon';
 import {
   BankTransaction,
   BankTransactionType,
@@ -209,13 +210,18 @@ export const WeeklyBalanceActivityModal: React.FC<Props> = ({
         className="relative w-full max-w-5xl bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-slate-200 bg-slate-50/70 flex items-start justify-between gap-3">
+        <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50/90 to-blue-50/40 flex items-start justify-between gap-3">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Activity size={18} className="text-[#0b5fa5]" />
-              <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">
-                Recent activity (7 ngày)
-              </h3>
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-200/80">
+                <HoatDongActivityIcon size={28} />
+              </span>
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">
+                  Hoạt động 7 ngày
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Biến động dòng tiền ngân hàng</p>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
               <span className="text-slate-600">
@@ -238,7 +244,7 @@ export const WeeklyBalanceActivityModal: React.FC<Props> = ({
         <div className="p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
-              <p className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">Số dư</p>
+              <p className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">Tiền chưa giải ngân</p>
               <p className="text-2xl font-extrabold text-slate-900 mt-1">
                 {formatCurrency(roundTo2(displayBalance))}
               </p>
@@ -258,10 +264,7 @@ export const WeeklyBalanceActivityModal: React.FC<Props> = ({
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Clock size={16} className="text-slate-500" />
-              <p className="text-sm font-extrabold text-slate-900">Danh sách giao dịch 7 ngày</p>
-            </div>
+            <p className="text-sm font-extrabold text-slate-900">Danh sách giao dịch 7 ngày</p>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">

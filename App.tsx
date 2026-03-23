@@ -14,9 +14,7 @@ import { InterestCalculator } from './pages/InterestCalculator';
 import { LiveClock } from './components/LiveClock';
 import { api } from './services/api';
 import { WeeklyBalanceActivityModal } from './components/WeeklyBalanceActivityModal';
-import { Landmark } from 'lucide-react';
-import { Calculator } from 'lucide-react';
-import { InterestCalculatorQuickModal } from './components/InterestCalculatorQuickModal';
+import { HoatDongActivityIcon } from './components/HoatDongActivityIcon';
 import { useDashboardPoll } from './hooks/usePoll';
 import {
   Transaction,
@@ -63,9 +61,8 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Quick balance popup (7-day activity)
+  // Popup hoạt động 7 ngày
   const [isBalanceWeeklyOpen, setIsBalanceWeeklyOpen] = useState(false);
-  const [isInterestCalcOpen, setIsInterestCalcOpen] = useState(false);
 
   // Data State - loaded from API
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -422,7 +419,6 @@ const App: React.FC = () => {
           bankAccount={bankAccount}
           setActiveTab={setActiveTab}
           onOpenBalanceModal={() => setIsBalanceWeeklyOpen(true)}
-          onOpenInterestCalcModal={() => setIsInterestCalcOpen(true)}
           currentUser={currentUser!}
         />;
       case 'projects':
@@ -600,26 +596,15 @@ const App: React.FC = () => {
           {renderContent()}
         </main>
 
-        {/* Quick balance button (bottom-right, above LiveClock) */}
+        {/* Nút mở popup hoạt động 7 ngày (góc phải, phía trên đồng hồ) */}
         {currentUser && (
           <button
             type="button"
             onClick={() => setIsBalanceWeeklyOpen(true)}
             className="fixed bottom-24 right-4 z-50 w-16 h-16 rounded-full bg-white/85 backdrop-blur-md border border-[#0b5fa5]/25 shadow-xl hover:bg-white transition-colors flex items-center justify-center"
-            title="Số dư & hoạt động 7 ngày gần nhất"
+            title="Hoạt động 7 ngày gần nhất"
           >
-            <Landmark size={26} className="text-[#0b5fa5]" />
-          </button>
-        )}
-        {/* Interest calculator quick popup (bottom-right, above balance button) */}
-        {currentUser && (
-          <button
-            type="button"
-            onClick={() => setIsInterestCalcOpen(true)}
-            className="fixed bottom-[11rem] right-4 z-50 w-16 h-16 rounded-full bg-white/85 backdrop-blur-md border border-[#0b5fa5]/25 shadow-xl hover:bg-white transition-colors flex items-center justify-center"
-            title="Tính lãi dự kiến"
-          >
-            <Calculator size={26} className="text-[#0b5fa5]" />
+            <HoatDongActivityIcon size={30} />
           </button>
         )}
 
@@ -635,15 +620,6 @@ const App: React.FC = () => {
           interestRateChangeDate={interestRateChangeDate}
           interestRateBefore={interestRateBefore}
           interestRateAfter={interestRateAfter}
-        />
-
-        <InterestCalculatorQuickModal
-          open={isInterestCalcOpen}
-          onClose={() => setIsInterestCalcOpen(false)}
-          currentUser={currentUser!}
-          transactions={transactions}
-          projects={projects}
-          interestRate={interestRate}
         />
 
         {/* Live Clock - Bottom Right (only show when logged in) */}

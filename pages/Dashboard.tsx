@@ -32,7 +32,6 @@ interface DashboardProps {
   bankAccount: BankAccount;
   setActiveTab: (tab: string) => void;
   onOpenBalanceModal: () => void;
-  onOpenInterestCalcModal: () => void;
   currentUser: User;
 }
 
@@ -47,7 +46,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   bankAccount, 
   setActiveTab, 
   onOpenBalanceModal,
-  onOpenInterestCalcModal,
   currentUser 
 }) => {
   const [selectedProjectIds, setSelectedProjectIds] = React.useState<string[]>([]);
@@ -554,14 +552,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     { id: 'dashboard', label: 'Trang chủ' },
     { id: 'projects', label: 'Dự án' },
     { id: 'transactions', label: 'Giao dịch' },
-    { id: 'balance', label: 'Số dư' },
-    { id: 'interestCalc', label: 'Tính lãi' },
+    { id: 'balance', label: 'Hoạt động' },
     { id: 'admin', label: 'Admin' },
   ];
   const quickActions = quickActionsAll.filter((action) => {
     if (currentUser.role === 'Admin' || currentUser.role === 'SuperAdmin') return true;
     if (action.id === 'balance') return currentUser.permissions?.includes('transactions') || currentUser.permissions?.includes('balance');
-    if (action.id === 'interestCalc') return currentUser.permissions?.includes('transactions') || currentUser.permissions?.includes('balance') || currentUser.permissions?.includes('interestCalc');
     if (action.id === 'admin') return false;
     return currentUser.permissions?.includes(action.id);
   });
@@ -795,7 +791,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               type="button"
               onClick={() => {
                 if (action.id === 'balance') return onOpenBalanceModal();
-                if (action.id === 'interestCalc') return onOpenInterestCalcModal();
                 return setActiveTab(action.id);
               }}
               className="min-w-[100px] px-4 py-2.5 rounded-lg text-sm font-semibold text-[#0f172a] bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-colors text-center"

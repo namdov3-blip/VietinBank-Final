@@ -84,7 +84,7 @@ export const Admin: React.FC<AdminProps> = ({
     { id: 'dashboard', label: 'Tổng quan (Dashboard)' },
     { id: 'projects', label: 'Quản lý Dự án' },
     { id: 'transactions', label: 'Giao dịch & Chi tiết' },
-    { id: 'balance', label: 'Số dư' },
+    { id: 'balance', label: 'Hoạt động' },
     { id: 'interestCalc', label: 'Tính lãi dự kiến' },
     { id: 'admin', label: 'Admin' },
   ];
