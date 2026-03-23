@@ -5,7 +5,6 @@ import { GlassCard } from '../components/GlassCard';
 import { PrintPhieuChi } from '../components/PrintPhieuChi';
 import { PrintPhieuChiBatch } from '../components/PrintPhieuChiBatch';
 import { formatCurrency, formatDate, calculateInterest, calculateInterestWithRateChange, exportTransactionsToExcel, roundTo2 } from '../utils/helpers';
-import { Search, Filter, Download, Folder, Users, CheckCircle, Clock, DollarSign, PiggyBank, ChevronLeft, ChevronRight, Eye, FileText, Printer, Trash2 } from 'lucide-react';
 import api from '../services/api';
 
 interface TransactionListProps {
@@ -376,12 +375,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     );
   };
 
-  const StatBox = ({ label, value, subValue, icon: Icon, colorClass }: any) => (
-    <GlassCard className="p-4 flex flex-col justify-between border-slate-200 min-h-[100px] shadow-sm">
-      <div className="flex justify-between items-start mb-2">
-        <span className="text-[10px] font-bold text-[#0f172a] uppercase tracking-wide">{label}</span>
-        <Icon size={16} className={colorClass} strokeWidth={2.5} />
-      </div>
+  const StatBox = ({ label, value, subValue }: { label: string; value: string | number; subValue?: string }) => (
+    <GlassCard className="p-4 flex flex-col justify-between border-slate-200 min-h-[100px] shadow-sm border-l-4 border-l-slate-300">
+      <span className="text-[10px] font-bold text-[#0f172a] uppercase tracking-wide mb-2 block">{label}</span>
       <div className="flex flex-col">
         <span className="text-lg font-bold text-slate-900 block">{value}</span>
         <span className="text-[10px] font-medium text-slate-500 min-h-[14px]">{subValue || '\u00A0'}</span>
@@ -398,11 +394,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         </div>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={handleDownload}
-            className="p-2 bg-white/60 hover:bg-white border border-slate-200 rounded-lg text-slate-600 transition-all shadow-sm group"
-            title="Tải xuống Excel"
+            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:text-blue-600 transition-all shadow-sm"
           >
-            <Download size={18} className="group-hover:text-blue-600" />
+            Tải Excel
           </button>
         </div>
       </div>
@@ -413,41 +409,29 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           label="Tổng dự án"
           value={stats.uniqueProjects}
           subValue="Trong bộ lọc"
-          icon={Folder}
-          colorClass="text-blue-600"
         />
         <StatBox
           label="Hộ đã giải ngân"
           value={stats.disbursedCount}
           subValue="Đã hoàn tất"
-          icon={CheckCircle}
-          colorClass="text-emerald-600"
         />
         <StatBox
           label="Hộ chưa giải ngân"
           value={stats.notDisbursedCount}
           subValue="Đang chờ"
-          icon={Clock}
-          colorClass="text-amber-600"
         />
         <StatBox
           label="Tiền đã giải ngân"
           value={formatCurrency(stats.moneyDisbursed)}
-          icon={DollarSign}
-          colorClass="text-emerald-600"
         />
         <StatBox
           label="Tiền chưa giải ngân"
           value={formatCurrency(stats.moneyNotDisbursed)}
-          icon={Users}
-          colorClass="text-amber-600"
         />
         <StatBox
           label="Tổng lãi phát sinh"
           value={formatCurrency(stats.accruedInterest)}
           subValue={stats.lockedInterest > 0 ? `Đã chốt: ${formatCurrency(stats.lockedInterest)}` : "Lãi tạm tính"}
-          icon={PiggyBank}
-          colorClass="text-rose-600"
         />
       </div>
 
@@ -455,12 +439,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       <GlassCard className="p-4 flex gap-4 items-center border-slate-200">
         <div className="w-full flex flex-col gap-3">
           <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex-1 min-w-[240px] relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <div className="flex-1 min-w-[240px]">
               <input
                 type="text"
                 placeholder="Tìm theo Trạng thái, Tên, Mã GD, Số QĐ, Số tiền... (có thể nhập nhiều điều kiện, cách nhau bởi dấu , hoặc :)"
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm font-bold text-black focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm font-bold text-black focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-400"
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               />
@@ -468,11 +451,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             {selectedTransactions.size > 0 && (
               <>
                 <button
+                  type="button"
                   onClick={() => setShowBatchPrint(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition-colors shadow-sm"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition-colors shadow-sm"
                 >
-                  <Printer size={16} />
-                  <span>In hàng loạt ({selectedTransactions.size})</span>
+                  In hàng loạt ({selectedTransactions.size})
                 </button>
                 <button
                   onClick={async () => {
@@ -520,10 +503,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       alert('Lỗi khi giải ngân hàng loạt: ' + (error.message || 'Unknown error'));
                     }
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
                 >
-                  <CheckCircle size={16} />
-                  <span>Giải ngân hàng loạt ({selectedTransactions.size})</span>
+                  Giải ngân hàng loạt ({selectedTransactions.size})
                 </button>
                 <button
                   onClick={async () => {
@@ -566,16 +548,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       alert('Lỗi khi xóa giao dịch: ' + (error.message || 'Unknown error'));
                     }
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors shadow-sm"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors shadow-sm"
                 >
-                  <Trash2 size={16} />
-                  <span>Xóa giao dịch ({selectedTransactions.size})</span>
+                  Xóa giao dịch ({selectedTransactions.size})
                 </button>
               </>
             )}
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-              <Filter size={16} />
-              <span>Bộ lọc</span>
+            <button type="button" className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+              Bộ lọc
             </button>
           </div>
 
@@ -836,20 +816,26 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button className="text-slate-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded transition-all" title="Chi tiết">
-                          <Eye size={16} strokeWidth={2.5} />
+                    <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          className="text-xs font-semibold text-blue-600 hover:underline px-1 py-0.5"
+                          title="Chi tiết"
+                          onClick={() => onSelect(t)}
+                        >
+                          Chi tiết
                         </button>
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setPrintTransaction(t);
                           }}
-                          className="text-slate-400 hover:text-green-600 p-1.5 hover:bg-green-50 rounded transition-all"
+                          className="text-xs font-semibold text-emerald-700 hover:underline px-1 py-0.5"
                           title="In phiếu chi"
                         >
-                          <FileText size={16} strokeWidth={2.5} />
+                          In phiếu
                         </button>
                       </div>
                     </td>
@@ -873,21 +859,23 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             <div className="flex justify-center">
               <div className="flex gap-2 items-center justify-center">
                 <button
+                  type="button"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
+                  className="px-3 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors min-w-[88px]"
                 >
-                  <ChevronLeft size={17} strokeWidth={2} />
+                  Trước
                 </button>
                 <div className="flex items-center justify-center px-4 bg-white border border-slate-200 rounded-lg text-sm font-bold text-blue-700 shadow-sm">
                   Trang {currentPage} / {totalPages}
                 </div>
                 <button
+                  type="button"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
+                  className="px-3 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors min-w-[88px]"
                 >
-                  <ChevronRight size={17} strokeWidth={2} />
+                  Sau
                 </button>
               </div>
             </div>

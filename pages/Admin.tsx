@@ -532,7 +532,6 @@ export const Admin: React.FC<AdminProps> = ({
                   <option value="Thiên Lộc">Thiên Lộc</option>
                   <option value="Thư Lâm">Thư Lâm</option>
               <option value="Vĩnh Thanh">Vĩnh Thanh</option>
-              <option value="Nam World">Nam World (Xem tất cả org)</option>
                 </select>
               </div>
 

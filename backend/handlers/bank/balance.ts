@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Build organization filter
         const orgFilter: any = {};
-        const isAllOrg = payload.role === 'SuperAdmin' || currentUser.organization === 'Nam World';
+        const isAllOrg = payload.role === 'SuperAdmin';
         if (payload.role !== 'Admin' && !isAllOrg && currentUser.organization) {
             orgFilter.organization = currentUser.organization;
         }

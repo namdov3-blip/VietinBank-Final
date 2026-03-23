@@ -1,6 +1,5 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { GlassCard } from '../components/GlassCard';
 import { Transaction, TransactionStatus, Project, User, BankAccount } from '../types';
 import { formatCurrency, calculateInterest, calculateInterestWithRateChange, formatDate, roundTo2, exportTransactionsToExcel } from '../utils/helpers';
 import {
@@ -21,27 +20,6 @@ import {
   AreaChart,
   LabelList
 } from 'recharts';
-import {
-  Wallet,
-  Layers,
-  TrendingUp,
-  Users,
-  UserX,
-  CheckCircle,
-  AlertCircle,
-  PiggyBank,
-  Check,
-  ChevronRight,
-  Landmark,
-  FolderKanban,
-  Calculator,
-  ShieldCheck,
-  LayoutDashboard,
-  Clock,
-  PauseCircle,
-  Search,
-  Download
-} from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -572,36 +550,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   };
 
-  const KPICard = ({ title, value, subValue, icon: Icon, colorClass }: any) => (
-    <GlassCard hoverEffect className="relative flex flex-col justify-between h-full min-h-[120px] shadow-sm border-slate-200">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-base font-bold text-[#0f172a]">{title}</h3>
-        <div className={`p-2 rounded-lg ${colorClass} bg-opacity-10 border border-current opacity-80`}>
-          <Icon size={18} className={colorClass.replace('bg-', 'text-')} strokeWidth={2} />
-        </div>
-      </div>
-      <div>
-        <div className="flex items-center gap-2">
-          <p className="text-xl font-semibold text-[#0f172a] tracking-tight">{value}</p>
-        </div>
-        {subValue && (
-          typeof subValue === 'string' ? (
-            <p className="text-[11px] font-medium text-slate-500 mt-1">{subValue}</p>
-          ) : (
-            <div className="text-[10px] font-medium text-slate-500 mt-1 space-y-0.5">{subValue}</div>
-          )
-        )}
-      </div>
-    </GlassCard>
-  );
-
   const quickActionsAll = [
-    { id: 'dashboard', icon: LayoutDashboard, label: 'Trang chủ', color: 'bg-blue-500' },
-    { id: 'projects', icon: FolderKanban, label: 'Dự án', color: 'bg-indigo-500' },
-    { id: 'transactions', icon: Users, label: 'Giao dịch', color: 'bg-cyan-500' },
-    { id: 'balance', icon: Landmark, label: 'Số dư', color: 'bg-teal-500' },
-    { id: 'interestCalc', icon: Calculator, label: 'Tính lãi', color: 'bg-emerald-500' },
-    { id: 'admin', icon: ShieldCheck, label: 'Admin', color: 'bg-slate-600' },
+    { id: 'dashboard', label: 'Trang chủ' },
+    { id: 'projects', label: 'Dự án' },
+    { id: 'transactions', label: 'Giao dịch' },
+    { id: 'balance', label: 'Số dư' },
+    { id: 'interestCalc', label: 'Tính lãi' },
+    { id: 'admin', label: 'Admin' },
   ];
   const quickActions = quickActionsAll.filter((action) => {
     if (currentUser.role === 'Admin' || currentUser.role === 'SuperAdmin') return true;
@@ -706,8 +661,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <p className="text-xs text-slate-500">Tài khoản chính</p>
               <p className="text-lg font-semibold text-[#0f172a]">{formatCurrency(displayBalance)} VND</p>
             </div>
-            <button onClick={() => onOpenBalanceModal()} className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              Chi tiết <ChevronRight size={16} />
+            <button onClick={() => onOpenBalanceModal()} className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+              Chi tiết
             </button>
           </div>
         </div>
@@ -740,22 +695,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Thống kê tổng quan */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
         <h3 className="text-base font-bold text-[#0f172a]">Thống kê tổng quan</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
           {[
-            { icon: FolderKanban, label: 'Tổng dự án', value: statsTotalProjects, color: 'bg-blue-100 text-blue-600' },
-            { icon: Layers, label: 'Tổng giá trị dự án', value: formatCurrency(statsTotalProjectValueUploaded), color: 'bg-indigo-100 text-indigo-600' },
-            { icon: Wallet, label: 'Tiền đã giải ngân', value: formatCurrency(statsDisbursedAmount), color: 'bg-purple-100 text-purple-600' },
-            { icon: Landmark, label: endDate ? 'Tiền chưa giải ngân (mốc đến ngày)' : 'Số dư ngân hàng', value: formatCurrency(displayBalance), color: 'bg-emerald-100 text-emerald-600' },
-            { icon: Clock, label: 'Chưa giải ngân', value: statsPendingCount, color: 'bg-slate-100 text-slate-600' },
-            { icon: CheckCircle, label: 'Đã giải ngân', value: statsDisbursedTrans.length, color: 'bg-green-100 text-green-600' },
-            { icon: PiggyBank, label: 'Tổng lãi', value: formatCurrency(statsTotalInterestRounded), color: 'bg-amber-100 text-amber-600' },
+            { label: 'Tổng dự án', value: statsTotalProjects, accent: 'border-l-blue-500' },
+            { label: 'Tổng giá trị dự án', value: formatCurrency(statsTotalProjectValueUploaded), accent: 'border-l-indigo-500' },
+            { label: 'Tiền đã giải ngân', value: formatCurrency(statsDisbursedAmount), accent: 'border-l-violet-500' },
+            { label: endDate ? 'Tiền chưa giải ngân (mốc đến ngày)' : 'Số dư ngân hàng', value: formatCurrency(displayBalance), accent: 'border-l-emerald-500' },
+            { label: 'Chưa giải ngân', value: statsPendingCount, accent: 'border-l-slate-400' },
+            { label: 'Đã giải ngân', value: statsDisbursedTrans.length, accent: 'border-l-green-500' },
+            { label: 'Tổng lãi', value: formatCurrency(statsTotalInterestRounded), accent: 'border-l-amber-500' },
           ].map((k, i) => (
-            <div key={i} className="flex flex-col items-center text-center p-4 rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors min-h-[100px] justify-center">
-              <div className={`w-11 h-11 rounded-full flex items-center justify-center mb-2 ${k.color}`}>
-                <k.icon size={22} strokeWidth={2} />
-              </div>
-              <p className="text-xs font-medium text-slate-600 mb-1">{k.label}</p>
-              <p className="text-sm font-bold text-[#0f172a] truncate w-full">{k.value}</p>
+            <div
+              key={i}
+              className={`flex flex-col justify-center text-left p-4 rounded-xl bg-slate-50/80 border border-slate-100 min-h-[88px] border-l-4 ${k.accent}`}
+            >
+              <p className="text-xs font-medium text-slate-600 mb-1.5 leading-snug">{k.label}</p>
+              <p className="text-sm font-bold text-[#0f172a] leading-tight">{k.value}</p>
             </div>
           ))}
         </div>
@@ -833,21 +788,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <h3 className="text-base font-bold text-[#0f172a]">Tab</h3>
           <span className="text-xs text-slate-500">Tuỳ chỉnh</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-12 gap-y-6 justify-items-center">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           {quickActions.map((action) => (
             <button
               key={action.id}
+              type="button"
               onClick={() => {
                 if (action.id === 'balance') return onOpenBalanceModal();
                 if (action.id === 'interestCalc') return onOpenInterestCalcModal();
                 return setActiveTab(action.id);
               }}
-              className="flex flex-col items-center gap-3 group"
+              className="min-w-[100px] px-4 py-2.5 rounded-lg text-sm font-semibold text-[#0f172a] bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-colors text-center"
             >
-              <div className="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform" style={{ background: VN_BLUE }}>
-                <action.icon size={28} strokeWidth={2} />
-              </div>
-              <span className="text-sm font-medium text-[#0f172a] text-center max-w-[100px]">{action.label}</span>
+              {action.label}
             </button>
           ))}
         </div>
@@ -858,23 +811,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
           <h3 className="text-base font-bold text-[#0f172a]">Danh sách chi trả</h3>
           <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Tìm theo Tên, Mã GD, Số QĐ, Số tiền... (dấu , để thêm điều kiện)"
-                value={pendingSearch}
-                onChange={(e) => { setPendingSearch(e.target.value); setPaymentListPage(0); }}
-                className="pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm w-80 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Tìm theo Tên, Mã GD, Số QĐ, Số tiền... (dấu , để thêm điều kiện)"
+              value={pendingSearch}
+              onChange={(e) => { setPendingSearch(e.target.value); setPaymentListPage(0); }}
+              className="px-3 py-2 border border-slate-200 rounded-lg text-sm w-80 max-w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
             <button
               type="button"
               onClick={handleDownloadPaymentList}
-              className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+              className="px-3 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
               title="Tải xuống Excel (toàn bộ danh sách)"
             >
-              <Download size={18} />
+              Tải Excel
             </button>
           </div>
         </div>
@@ -924,7 +874,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
           {filteredTransactions.length > 0 && (
-            <button onClick={() => setActiveTab('transactions')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Xem tất cả giao dịch <ChevronRight size={14} className="inline" /></button>
+            <button type="button" onClick={() => setActiveTab('transactions')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Xem tất cả giao dịch</button>
           )}
           {paymentListTotalPages > 1 && (
             <div className="flex items-center gap-2 ml-auto">

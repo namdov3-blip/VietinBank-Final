@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Build project filter for organization
         let projectFilter: any = {};
-        const isAllOrg = payload.role === 'SuperAdmin' || currentUser.organization === 'Nam World';
+        const isAllOrg = payload.role === 'SuperAdmin';
         if (payload.role !== 'Admin' && !isAllOrg && currentUser.organization) {
             projectFilter.organization = currentUser.organization;
         }

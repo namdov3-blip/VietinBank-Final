@@ -115,7 +115,7 @@ export interface User {
   avatar: string;
   permissions: string[];
   password?: string;
-  organization?: 'Đông Anh' | 'Phúc Thịnh' | 'Thiên Lộc' | 'Thư Lâm' | 'Vĩnh Thanh' | 'Nam World';
+  organization?: 'Đông Anh' | 'Phúc Thịnh' | 'Thiên Lộc' | 'Thư Lâm' | 'Vĩnh Thanh';
 }
 
 export interface AuditLogItem {

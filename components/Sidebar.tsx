@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { LayoutDashboard, FolderKanban, Users, LogOut, ShieldCheck, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { User } from '../types';
 
 interface SidebarProps {
@@ -14,10 +13,10 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, currentUser, onLogout, collapsed = false, onToggleCollapse }) => {
   const menuItems = [
-    { id: 'dashboard', icon: LayoutDashboard, label: 'Tổng quan' },
-    { id: 'projects', icon: FolderKanban, label: 'Dự án' },
-    { id: 'transactions', icon: Users, label: 'Giao dịch' },
-    { id: 'admin', icon: ShieldCheck, label: 'Admin' },
+    { id: 'dashboard', label: 'Tổng quan', abbr: 'TQ' },
+    { id: 'projects', label: 'Dự án', abbr: 'DA' },
+    { id: 'transactions', label: 'Giao dịch', abbr: 'GD' },
+    { id: 'admin', label: 'Admin', abbr: 'Ad' },
   ];
 
   const availableItems = menuItems.filter(item => {
@@ -41,9 +40,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
         title={collapsed ? 'Chi Nhánh Đông Anh' : undefined}
       >
         {collapsed ? (
-          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">VTB</span>
-          </div>
+          <img
+            src="/vietinbank-sidebar-logo.png"
+            alt="VietinBank"
+            className="h-9 w-auto max-w-[52px] object-contain flex-shrink-0"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              if (target.parentElement) {
+                const fallback = document.createElement('div');
+                fallback.className = 'w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0';
+                fallback.innerHTML = '<span style="color:white;font-weight:700;font-size:12px">VTB</span>';
+                target.parentElement.insertBefore(fallback, target.nextSibling);
+              }
+            }}
+          />
         ) : (
           <>
             <img
@@ -76,15 +87,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
             onClick={() => setActiveTab(item.id)}
             title={collapsed ? item.label : undefined}
             className={`
-              w-full flex items-center gap-3 rounded-lg text-[13px] font-medium transition-all duration-200
-              ${collapsed ? 'justify-center px-0 py-2.5' : 'px-4 py-2.5'}
+              w-full flex items-center rounded-lg text-[13px] font-medium transition-all duration-200
+              ${collapsed ? 'justify-center px-0 py-2.5' : 'px-4 py-2.5 justify-start text-left'}
               ${activeTab === item.id
                 ? 'bg-white/15 text-white shadow-sm shadow-black/10'
                 : 'text-white/60 hover:bg-white/8 hover:text-white/90'}
             `}
           >
-            <item.icon size={18} strokeWidth={1.8} className="flex-shrink-0" />
             {!collapsed && item.label}
+            {collapsed && (
+              item.id === 'projects' ? (
+                <span className="text-[10px] font-medium leading-tight text-center px-0.5 max-w-[52px]">
+                  Dự<br />
+                  án
+                </span>
+              ) : item.id === 'admin' ? (
+                <span className="text-[10px] font-medium leading-tight text-center px-0.5">Admin</span>
+              ) : (
+                <span className="text-[10px] font-bold leading-tight text-center px-0.5">{item.abbr}</span>
+              )
+            )}
           </button>
         ))}
       </nav>
@@ -92,10 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
       {/* Hotline */}
       {!collapsed && (
         <div className="px-5 py-3 border-t border-white/10 flex flex-col items-center text-center">
-          <div className="flex items-center gap-2 text-white/40">
-            <Phone size={13} strokeWidth={1.8} />
-            <span className="text-[10px] font-medium">Hotline hỗ trợ</span>
-          </div>
+          <span className="text-[10px] font-medium text-white/50">Hotline hỗ trợ</span>
           <p className="text-white font-bold text-sm mt-0.5 tracking-wide">
             A Đức Huy - SĐT: 0866565689
           </p>
@@ -103,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
       )}
       {collapsed && (
         <div className="px-2 py-3 border-t border-white/10 flex justify-center">
-          <Phone size={16} className="text-white/40" strokeWidth={1.8} />
+          <span className="text-[9px] font-medium text-white/40 text-center leading-tight">Hỗ trợ</span>
         </div>
       )}
 
@@ -116,13 +135,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
         >
           <img src={currentUser.avatar} alt="User" className="w-9 h-9 rounded-full object-cover border-2 border-white/20 flex-shrink-0" />
           {!collapsed && (
-            <>
-              <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+              <div className="min-w-0">
                 <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
                 <p className="text-[10px] text-white/50 truncate">{currentUser.role}</p>
               </div>
-              <LogOut size={16} className="text-white/40 group-hover:text-red-400 transition-colors flex-shrink-0" strokeWidth={1.8} />
-            </>
+              <span className="text-[10px] font-semibold text-white/50 group-hover:text-red-300 shrink-0">Đăng xuất</span>
+            </div>
           )}
         </div>
       </div>
@@ -131,16 +150,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
       <div className="border-t border-white/10">
         <button
           onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center gap-2 py-3 text-white/50 hover:text-white hover:bg-white/8 transition-all duration-200"
+          className="w-full flex items-center justify-center gap-2 py-3 text-white/50 hover:text-white hover:bg-white/8 transition-all duration-200 text-sm"
           title={collapsed ? 'Mở rộng' : 'Thu gọn'}
         >
           {collapsed ? (
-            <ChevronRight size={18} strokeWidth={2} />
+            <span className="text-xs font-medium">Mở rộng</span>
           ) : (
-            <>
-              <ChevronLeft size={18} strokeWidth={2} />
-              <span className="text-xs font-medium">Thu gọn</span>
-            </>
+            <span className="text-xs font-medium">Thu gọn</span>
           )}
         </button>
       </div>

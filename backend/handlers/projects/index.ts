@@ -29,8 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'GET') {
             const filter: any = {};
 
-            const isAllOrg = payload.role === 'SuperAdmin' || currentUser.organization === 'Nam World';
-            // SuperAdmin/Admin/Nam World sees all, others see only their org
+            const isAllOrg = payload.role === 'SuperAdmin';
+            // SuperAdmin sees all; Admin sees all via branch below; others see only their org
             if (payload.role !== 'Admin' && !isAllOrg && currentUser.organization) {
                 filter.organization = currentUser.organization;
             }

@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // Build organization filter
-        const isAdmin = payload.role === 'Admin' || payload.role === 'SuperAdmin' || currentUser.organization === 'Nam World';
+        const isAdmin = payload.role === 'Admin' || payload.role === 'SuperAdmin';
         const userOrg = currentUser.organization;
         const projectFilter: any = {};
         if (!isAdmin && userOrg) {
