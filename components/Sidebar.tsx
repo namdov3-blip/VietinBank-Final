@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { LayoutDashboard, FolderKanban, Users, LogOut, ShieldCheck, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { User } from '../types';
 
@@ -35,28 +35,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
         background: 'linear-gradient(180deg, #005992 0%, #004070 35%, #5c2a4a 65%, #D71049 100%)',
       }}
     >
-      {/* Logo */}
-      <div className={`pt-5 pb-5 flex items-center border-b border-white/10 ${collapsed ? 'px-3' : 'px-5'} justify-center`}>
+      {/* Logo + chi nhánh */}
+      <div
+        className={`pt-5 pb-5 flex border-b border-white/10 ${collapsed ? 'px-3' : 'px-5'} justify-center ${collapsed ? 'items-center' : 'flex-col items-center gap-2'}`}
+        title={collapsed ? 'Chi Nhánh Đông Anh' : undefined}
+      >
         {collapsed ? (
           <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-sm">VTB</span>
           </div>
         ) : (
-          <img
-            src="/vietinbank-sidebar-logo.png"
-            alt="VietinBank"
-            className="h-11 w-auto object-contain"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              if (target.parentElement) {
-                const fallback = document.createElement('div');
-                fallback.className = 'flex items-center gap-1';
-                fallback.innerHTML = '<span style="color:white;font-weight:700;font-size:20px;letter-spacing:-0.5px">VietinBank eFAST</span>';
-                target.parentElement.insertBefore(fallback, target.nextSibling);
-              }
-            }}
-          />
+          <>
+            <img
+              src="/vietinbank-sidebar-logo.png"
+              alt="VietinBank"
+              className="h-11 w-auto object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                if (target.parentElement) {
+                  const fallback = document.createElement('div');
+                  fallback.className = 'flex items-center gap-1';
+                  fallback.innerHTML = '<span style="color:white;font-weight:700;font-size:20px;letter-spacing:-0.5px">VietinBank eFAST</span>';
+                  target.parentElement.insertBefore(fallback, target.nextSibling);
+                }
+              }}
+            />
+            <p className="text-center text-[11px] font-semibold text-white/95 leading-snug tracking-wide px-1">
+              Chi Nhánh Đông Anh
+            </p>
+          </>
         )}
       </div>
 

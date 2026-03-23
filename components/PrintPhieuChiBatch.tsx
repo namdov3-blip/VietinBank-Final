@@ -146,7 +146,7 @@ export const PrintPhieuChiBatch: React.FC<PrintPhieuChiBatchProps> = ({
         const qrDataUrl = qrDataUrls[transaction.id] || '';
 
         return (
-            <div className="print-phieu-chi p-8 bg-white" style={{ fontFamily: 'Times New Roman, serif' }}>
+            <div className="print-phieu-chi p-8 bg-white" style={{ fontFamily: "'SVN-Gilroy', system-ui, sans-serif" }}>
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                     <div className="border-2 border-black p-3" style={{ maxWidth: '280px' }}>

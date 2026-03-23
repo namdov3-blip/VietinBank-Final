@@ -282,7 +282,7 @@ export const PrintPhieuChi: React.FC<PrintPhieuChiProps> = ({
     const orgInfo = getOrgHeader();
 
     const PhieuChiTemplate = () => (
-        <div className="print-phieu-chi p-8 bg-white" style={{ fontFamily: 'Times New Roman, serif' }}>
+        <div className="print-phieu-chi p-8 bg-white" style={{ fontFamily: "'SVN-Gilroy', system-ui, sans-serif" }}>
             <style>{`
                 @media print {
                     @page {
