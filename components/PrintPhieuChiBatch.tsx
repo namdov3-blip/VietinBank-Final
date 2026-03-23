@@ -219,25 +219,25 @@ export const PrintPhieuChiBatch: React.FC<PrintPhieuChiBatchProps> = ({
                     </div>
                 </div>
 
-                {/* Recipient Info */}
-                <div className="mb-4 space-y-2">
-                    <p className="text-sm">
-                        Họ và tên người nhận tiền: <span className="font-bold">{transaction.household.name}</span>
-                    </p>
-                    <p className="text-sm">
-                        Địa chỉ: <span className="border-b border-dotted border-black inline-block min-w-[400px]">
-                            {transaction.household.address || ''}
-                        </span>
-                    </p>
+                {/* Customer Info */}
+                <div className="mb-4">
+                    <div className="border border-slate-300 rounded-lg p-3">
+                        <p className="text-sm mb-2">
+                            Họ và tên người nhận tiền: <span className="font-bold">{transaction.household.name}</span>
+                        </p>
+                        <p className="text-sm">
+                            Địa chỉ:{' '}
+                            <span className="border-b border-dotted border-black inline-block min-w-[420px]">
+                                {transaction.household.address || ''}
+                            </span>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Content */}
-                <div className="mb-4 space-y-2">
+                <div className="mb-4">
                     <p className="text-sm">
-                        Nội dung: Chi trả tiền {transaction.paymentType || 'bồi thường, hỗ trợ GPMB'} theo quyết định số {transaction.household.decisionNumber} ngày {formatDate(transaction.household.decisionDate)}
-                    </p>
-                    <p className="text-sm">
-                        thuộc dự án: {project?.name || 'N/A'} (Mã dự án: {project?.code || transaction.projectId})
+                        Nội dung: Chi trả tiền {transaction.paymentType || 'bồi thường, hỗ trợ GPMB'} theo quyết định số {transaction.household.decisionNumber} ngày {formatDate(transaction.household.decisionDate)}; thuộc dự án: {project?.name || 'N/A'} (Mã dự án: {project?.code || transaction.projectId})
                     </p>
                 </div>
 
