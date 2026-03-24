@@ -14,7 +14,7 @@ interface ProjectsProps {
   interestRateAfter?: number | null;
   onImport: (project: Project, transactions: Transaction[]) => void;
   onUpdateProject: (updatedProject: Project) => void;
-  onViewDetails: (projectCode: string) => void;
+  onViewDetails: (projectCode: string, projectName?: string) => void;
   onDeleteProject: (id: string) => void;
 }
 
@@ -479,7 +479,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                         <div
                           key={project.id}
                           className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
-                          onClick={() => onViewDetails(project.code)}
+                          onClick={() => onViewDetails(project.code, project.name)}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
@@ -616,7 +616,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                             <Edit2 size={15} strokeWidth={2} />
                           </button>
                           <button
-                            onClick={() => onViewDetails(project.code)}
+                            onClick={() => onViewDetails(project.code, project.name)}
                             className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all"
                             title="Xem chi tiết"
                           >

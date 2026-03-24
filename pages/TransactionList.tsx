@@ -146,6 +146,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       // Một giao dịch phải thỏa MỌI điều kiện (AND) trong chuỗi search
       return rawTerms.every(termRaw => {
         const term = termRaw.toLowerCase();
+        const projectCode = project?.code?.toLowerCase() || '';
+        const projectName = project?.name?.toLowerCase() || '';
+        const codeNameParts = term.split(/\s*-\s*/).map(p => p.trim()).filter(Boolean);
+        const isProjectCodeNameMatch =
+          codeNameParts.length >= 2 &&
+          projectCode.includes(codeNameParts[0]) &&
+          projectName.includes(codeNameParts.slice(1).join(' - '));
         
         // Tính toán số tiền để search — khớp logic Point-in-Time + Rate Change với bảng/stats
         const principalBase = (t as any).principalForInterest ?? t.compensation.totalApproved;
@@ -178,6 +185,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         
         const effectiveStatusStr = getEffectiveStatus(t);
         return (
+          isProjectCodeNameMatch ||
           effectiveStatusStr.toLowerCase().includes(term) || // Search by effective Status (point-in-time)
           t.household.name.toLowerCase().includes(term) || // Search by Name
           t.household.cccd.includes(termRaw) || // CCCD giữ nguyên (thường nhập số)
@@ -187,6 +195,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           (t.paymentType && t.paymentType.toLowerCase().includes(term)) || // Search by Payment Type
           (typeof t.projectId === 'string' && t.projectId.toLowerCase().includes(term)) ||
           project?.code.toLowerCase().includes(term) ||
+          project?.name.toLowerCase().includes(term) ||
           // Search by Amount (số tiền)
           totalApprovedStr.includes(numericTerm) || // Tổng phê duyệt
           interestStr.includes(numericTerm) || // Lãi phát sinh

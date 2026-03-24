@@ -661,7 +661,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
             {/* 1. Money Section */}
             <div className="space-y-3">
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
                 {/* Approved */}
                 <div className="p-3 rounded-xl bg-white border border-slate-200">
                   <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Tổng phê duyệt</p>

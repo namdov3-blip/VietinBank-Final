@@ -439,7 +439,11 @@ const App: React.FC = () => {
             setProjects(projectsRes.data);
             setTransactions(transactionsRes.data);
           }}
-          onViewDetails={(c) => { setTransactionSearchTerm(c); setActiveTab('transactions'); }}
+          onViewDetails={(projectCode, projectName) => {
+            const keyword = projectName ? `${projectCode} - ${projectName}` : projectCode;
+            setTransactionSearchTerm(keyword);
+            setActiveTab('transactions');
+          }}
           onDeleteProject={async (id) => {
             try {
               console.log(`[PROJECT_DELETE] Attempting to delete project ID: "${id}"`);
