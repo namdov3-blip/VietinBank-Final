@@ -627,7 +627,7 @@ const App: React.FC = () => {
         />
 
         {/* Live Clock - Bottom Right (only show when logged in) */}
-        {currentUser && <LiveClock />}
+        {/* (Ẩn theo yêu cầu) */}
         {selectedTransaction && (
           <TransactionModal
             transaction={selectedTransaction}

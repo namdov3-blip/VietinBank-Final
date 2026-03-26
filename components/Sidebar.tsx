@@ -116,13 +116,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, curre
         <div className="px-5 py-3 border-t border-white/10 flex flex-col items-center text-center">
           <span className="text-[10px] font-medium text-white/50">Hotline hỗ trợ</span>
           <p className="text-white font-bold text-sm mt-0.5 tracking-wide">
-            A Đức Huy - SĐT: 0866565689
+            0866565689
           </p>
         </div>
       )}
       {collapsed && (
         <div className="px-2 py-3 border-t border-white/10 flex justify-center">
-          <span className="text-[9px] font-medium text-white/40 text-center leading-tight">Hỗ trợ</span>
+          <span className="text-[9px] font-bold text-white/60 text-center leading-tight">0866565689</span>
         </div>
       )}
 

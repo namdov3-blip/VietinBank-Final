@@ -636,19 +636,19 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   />
                 </th>
                 <th className="px-4 py-3.5 border-r border-slate-200 text-center w-12">STT</th>
-                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[100px]">Mã GD</th>
-                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[120px]">Mã Hộ Dân</th>
-                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[140px]">Mã Dự Án</th>
                 <th className="px-4 py-3.5 border-r border-slate-200 min-w-[150px]">Họ và tên</th>
-                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[180px]">Loại chi trả</th>
                 <th className="px-4 py-3.5 border-r border-slate-200 min-w-[105px]">Số quyết định</th>
-                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[130px]">Ngày giải ngân</th>
                 <th className="px-4 py-3.5 text-center border-r border-slate-200 min-w-[130px]">Tổng phê duyệt</th>
                 <th className="px-4 py-3.5 text-center border-r border-slate-200 min-w-[120px]">Lãi phát sinh</th>
                 <th className="px-4 py-3.5 text-center border-r border-slate-200 min-w-[120px]">Tiền bổ sung</th>
                 <th className="px-4 py-3.5 text-center border-r border-slate-200 min-w-[130px]">Tổng chi trả</th>
                 <th className="px-4 py-3.5 text-center border-r border-slate-200 min-w-[130px]">Tiền còn lại</th>
+                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[130px]">Ngày giải ngân</th>
                 <th className="px-4 py-3.5 border-r border-slate-200 text-center min-w-[120px]">Trạng thái</th>
+                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[140px]">Mã Dự Án</th>
+                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[120px]">Mã Hộ Dân</th>
+                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[100px]">Mã GD</th>
+                <th className="px-4 py-3.5 border-r border-slate-200 min-w-[180px]">Loại chi trả</th>
                 <th className="px-4 py-3.5 text-center min-w-[80px]">Thao tác</th>
               </tr>
             </thead>
@@ -752,32 +752,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="px-4 py-3 border-r border-slate-200">
-                      <span className="font-bold text-slate-800 text-xs">{t.id}</span>
-                    </td>
-                    <td className="px-4 py-3 border-r border-slate-200 font-mono text-[11px] font-bold text-slate-500">
-                      {t.household.id}
-                    </td>
-                    <td className="px-4 py-3 border-r border-slate-200 max-w-[140px] truncate">
-                      <span className="text-xs font-bold bg-blue-50 px-2 py-1 rounded text-blue-700 truncate block">
-                        {project ? project.code : (t.projectId as any).toString()}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 border-r border-slate-200">
                       <span className="text-slate-900 font-bold text-[13px] group-hover:text-blue-700 transition-colors block">{t.household.name}</span>
-                    </td>
-                    <td className="px-4 py-3 border-r border-slate-200">
-                      <span className="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded">
-                        {t.paymentType || '-'}
-                      </span>
                     </td>
                     <td className="px-4 py-3 border-r border-slate-200 max-w-[105px] truncate">
                       <span className="text-xs font-bold text-slate-700 truncate block">{t.household?.decisionNumber || '-'}</span>
-                    </td>
-                    <td className="px-4 py-3 border-r border-slate-200">
-                      <div className="flex flex-col">
-                        <span className={`text-xs ${dateColorClass}`}>{displayDateStr}</span>
-                        <span className="text-[10px] text-slate-400 italic font-medium">{dateNote}</span>
-                      </div>
                     </td>
                     <td className="px-4 py-3 text-center font-bold text-slate-800 border-r border-slate-200">
                       {formatCurrency(principalBase)}
@@ -810,6 +788,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         <span className="text-slate-400">-</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 border-r border-slate-200">
+                      <div className="flex flex-col">
+                        <span className={`text-xs ${dateColorClass}`}>{displayDateStr}</span>
+                        <span className="text-[10px] text-slate-400 italic font-medium">{dateNote}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 border-r border-slate-200 text-center">
                       <div className="flex items-center justify-center">
                         <span
@@ -824,6 +808,22 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                           {effectiveStatus}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-4 py-3 border-r border-slate-200 max-w-[140px] truncate">
+                      <span className="text-xs font-bold bg-blue-50 px-2 py-1 rounded text-blue-700 truncate block">
+                        {project ? project.code : (t.projectId as any).toString()}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 border-r border-slate-200 font-mono text-[11px] font-bold text-slate-500">
+                      {t.household.id}
+                    </td>
+                    <td className="px-4 py-3 border-r border-slate-200">
+                      <span className="font-bold text-slate-800 text-xs">{t.id}</span>
+                    </td>
+                    <td className="px-4 py-3 border-r border-slate-200">
+                      <span className="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded">
+                        {t.paymentType || '-'}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-2 flex-wrap">

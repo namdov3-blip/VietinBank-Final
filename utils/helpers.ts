@@ -723,6 +723,7 @@ export const exportTransactionsToExcel = (
     'Mã GD',
     'Mã Hộ Dân',
     'Mã Dự Án',
+    'Tên dự án',
     'Họ và tên',
     'Loại chi trả',
     'Số quyết định',
@@ -737,10 +738,10 @@ export const exportTransactionsToExcel = (
   ]);
 
   transactions.forEach((t, index) => {
-    const project = projects.find(p => p.id === t.projectId);
+    const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
+    const project = projects.find(p => (p.id === pIdStr || p._id === pIdStr));
 
     // Calculate individual interest - KHỚP HOÀN TOÀN với logic trong bảng (Point-in-Time)
-    const pIdStr = (t.projectId && (t.projectId as any)._id) ? (t.projectId as any)._id.toString() : t.projectId?.toString();
     const projectForInterest = projects.find(p => (p.id === pIdStr || p._id === pIdStr));
     // Nếu đã rút một phần, dùng principalForInterest làm gốc tính lãi (để tính lãi kép trên phần còn lại)
     const principalBase = (t as any).principalForInterest ?? t.compensation.totalApproved;
@@ -783,6 +784,7 @@ export const exportTransactionsToExcel = (
 
     // Ensure all values are properly converted to avoid [object Object]
     const projectCode = project ? (typeof project.code === 'string' ? project.code : String(project.code || '')) : (typeof t.projectId === 'string' ? t.projectId : String(t.projectId || ''));
+    const projectName = project ? (typeof project.name === 'string' ? project.name : String(project.name || '')) : '';
     
     // Tổng chi trả:
     // - Chưa giải ngân: luôn dùng totalAvailable để SUM khớp stats "Tiền chưa giải ngân"
@@ -808,6 +810,7 @@ export const exportTransactionsToExcel = (
       String(t.id || ''),
       String(t.household?.id || ''),
       projectCode,
+      projectName,
       String(t.household?.name || ''),
       String(t.paymentType || '-'),
       String(t.household?.decisionNumber || '-'),
